@@ -363,7 +363,7 @@ def genDataSet(leadTime):
     # dimmList = dimmList[10:103]
     q = Queue()
     processList = []
-    cpuCount = os.cpu_count()*4
+    cpuCount = os.cpu_count()
     # cpuCount = 1
     subListSize = math.ceil(len(dimmList) / cpuCount)
     for i in range(cpuCount):
