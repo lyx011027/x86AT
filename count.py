@@ -75,7 +75,7 @@ def countPredictableUEDIMMProcess(q, subDfList, leadTimeList, LeadCECountList):
                 else:
                     break
             
-        q.put(LeadTimePredictable, LeadCountPredictable)
+        q.put([LeadTimePredictable, LeadCountPredictable])
         
 # 统计不同 lead time 时，可预测的 UE DIMM 数量
 def countPredictableUEDIMM(leadTimeList,LeadCECountList,subDfList):
