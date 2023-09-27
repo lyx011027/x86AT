@@ -41,10 +41,10 @@ def countPredictableUEDIMMMerge(q, leadTimeList, LeadCECountList):
             return
         UE += 1
         for i in range(len(LeadTimePredictable)):
-            if timePredictableDIMM[i]:
+            if LeadTimePredictable[i]:
                 timePredictableDIMM[i] += 1
         for i in range(len(LeadCountPredictable)):
-            if countPredictableDIMM[i]:
+            if LeadCountPredictable[i]:
                 countPredictableDIMM[i] += 1
 
 def countPredictableUEDIMMProcess(q, subDfList, leadTimeList, LeadCECountList):
@@ -68,6 +68,7 @@ def countPredictableUEDIMMProcess(q, subDfList, leadTimeList, LeadCECountList):
                     LeadTimePredictable[i] = True
                 else:
                     break
+                
             CECount = CEDf.shape[0]
             for i in range(len(LeadCECountList)):
                 if CECount > LeadCECountList[i]:
@@ -159,10 +160,10 @@ def countBeforeUEProcess(q, subDfList):
             continue
         
         firstUER = UERDf.loc[0,'record_date']
-        
         CEDf = df[(df['err_type'].isin(CETypeList)) & (df['record_date'] < firstUER) ].reset_index(drop=True)
+        print(CEDf)
         if CEDf.shape[0] == 0:
-            q.put([1, datetime.now(), datetime.now()])
+            q.put([1, datetime.now(), datetime.now(), 0])
             continue
         firstCETime = firstUER - CEDf.loc[0, 'record_date'] 
         lastCETime = firstUER - CEDf.loc[CEDf.shape[0] - 1, 'record_date']
