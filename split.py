@@ -64,6 +64,8 @@ def splitByDIMM():
                             'registers.retry_rd_err_log_address2':'retry_rd_err_log_address2',
                             'registers.retry_rd_err_log_misc':'retry_rd_err_log_misc',
                             'registers.retry_rd_err_log_parity':'retry_rd_err_log_parity'})
+    df = df.sort_values(by = ['record_date']).reset_index(drop=True)
+    
     dfList = list(df.groupby('dimm_sn'))
     
     

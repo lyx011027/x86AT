@@ -28,3 +28,69 @@ UEOTypeList = ['Uncorrected Error-SRAO', 'Uncorrected Error-UCNA']
 UETypeList = UERTypeList + UEOTypeList
 
 PatrolScrubbingUETypeList = ['Downgraded Uncorrected PatrolScrubbing Error']
+
+STATIC_ITEM = []
+OBSERVATION_TIME_LIST = [timedelta(minutes=6), timedelta(hours=6), timedelta(hours=24), timedelta(hours=72), timedelta(hours=120)]
+# OBSERVATION_TIME_LIST = [timedelta(minutes=1), timedelta(minutes=5), timedelta(hours=1), timedelta(hours=3), timedelta(hours=12), timedelta(hours=24)]
+
+# 提前预测时间
+LEAD_TIME_LIST = [timedelta(seconds=1),timedelta(seconds=30),timedelta(minutes=1),timedelta(minutes=5),timedelta(minutes=60)]
+
+
+def getMinutes(time):
+    return int(time.days * 24 * 60 + time.seconds / 60)
+CEIntervalNumList = [3, 5, 7] 
+FltCnt = {'Cell':2,'Row':2,'Column':2,'Bank':3,'Device':2}
+
+
+def getDynamicSample():
+    sample = {}
+    # sample = getFrequencySample(sample)
+    sample = getBitLevelSample(sample)
+    sample = getSubBankSample(sample)
+    sample = getCECountSample(sample)
+    return sample
+
+def getFrequencySample(sample):
+    for time in OBSERVATION_TIME_LIST:
+        sample['Rpt_CE_Cnt_{}'.format(getMinutes(time))] = 0
+        sample['Err_CE_Cnt_{}'.format(getMinutes(time))] = 0
+        for num in CEIntervalNumList:
+            sample['Min_T_CE_{}_{}'.format(getMinutes(time), num)] = 126144000
+    for level in FltCnt.keys():
+        sample[level] = False
+    return sample
+
+
+prefixList = ['max', 'sum', 'min', 'avg']
+patternList = ['adjERRDq', 'maxDqDistance','minDqDistance', 'maxBurstDistance','minBurstDistance', 'errorBurst', 'errorDq', 'errorPerBurst']
+def getBitLevelSample(sample):
+    for prefix in prefixList:
+        for pattern in patternList:
+            sample['{}_{}'.format(prefix,pattern)] = 0
+    return sample
+
+def getSubBankSample(dynamicSample):
+
+    dynamicSample['subBank_count'] = 0
+    dynamicSample['subBank_avg'] = 0
+    dynamicSample['subBank_max'] = 0
+    return dynamicSample
+
+def getCECountSample(dynamicSample):
+
+    for level in FltCnt.keys():
+        dynamicSample['{}_count'.format(level)] = 0
+        dynamicSample['{}_avg'.format(level)] = 0    
+        dynamicSample['{}_max'.format(level)] = 0   
+    dynamicSample['noadd'] = 0
+    dynamicSample['CE_number'] = 0
+    return dynamicSample
+      
+dynamicItem = list(getDynamicSample().keys())
+LEAD = timedelta(minutes=0)
+dataSetFile = "{}.csv".format(getMinutes(LEAD))
+
+# PASS = 
+subBankTime = timedelta(minutes=5)
+OBSERVATION = timedelta(hours=120)
