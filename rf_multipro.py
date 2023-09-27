@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 from config import *
 from multiprocessing import Process
-from imblearn.combine import SMOTEENN
+# from imblearn.combine import SMOTEENN
 import lightgbm as lgb
 import copy
 
@@ -144,7 +144,7 @@ def trainAndTest(time,trainItem):
     trainItem = np.array(trainItem)
     plot_feature_importances(rfc.feature_importances_, "feature importances", trainItem,picFile)
     # 输出对应 threshold的结果
-    threshold = 0.40
+    threshold = 0.25
     predicted_proba = rfc.predict_proba(X_test)
     
 
