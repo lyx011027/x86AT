@@ -144,7 +144,7 @@ def trainAndTest(time,trainItem):
     trainItem = np.array(trainItem)
     plot_feature_importances(rfc.feature_importances_, "feature importances", trainItem,picFile)
     # 输出对应 threshold的结果
-    threshold = 0.25
+    threshold = 0.20
     predicted_proba = rfc.predict_proba(X_test)
     
 
