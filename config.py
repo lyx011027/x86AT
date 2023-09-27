@@ -22,7 +22,7 @@ MAXIMUM_RATIO = 100
 STATIC_ITEM = [ "bit_width" ,"bit_width_x" ,"capacity"  ,'min_voltage',"part_number"   ,"procedure" ,"rank_count" ,"speed" ,"vendor"]
 
 
-CETypeList = ['Corrected Errors']
+CETypeList = ['Corrected Error']
 UERTypeList = ['Uncorrected Error-SRAR', 'Uncorrected Error-Catastrophic/Fatal']
 UEOTypeList = ['Uncorrected Error-SRAO', 'Uncorrected Error-UCNA']
 UETypeList = UERTypeList + UEOTypeList

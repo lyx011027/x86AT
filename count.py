@@ -161,7 +161,7 @@ def countBeforeUEProcess(q, subDfList):
         
         firstUER = UERDf.loc[0,'record_date']
         CEDf = df[(df['err_type'].isin(CETypeList)) & (df['record_date'] < firstUER) ].reset_index(drop=True)
-        print(CEDf)
+        
         if CEDf.shape[0] == 0:
             q.put([1, datetime.now(), datetime.now(), 0])
             continue
