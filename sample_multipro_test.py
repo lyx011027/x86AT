@@ -210,7 +210,7 @@ def processDimm(id, q, dimmList, leadTime):
         
         
         errorFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_error.csv")
-        df = pd.read_csv(errorFile)
+        df = pd.read_csv(errorFile, low_memory=False)
         df['record_date'] = pd.to_datetime(df['record_date'], format="%Y-%m-%d %H:%M:%S")
         
         UEFlag = False
