@@ -46,7 +46,7 @@ FltCnt = {'Cell':2,'Row':2,'Column':2,'Bank':3,'Device':2}
 def getDynamicSample():
     sample = {}
     # sample = getFrequencySample(sample)
-    sample = getBitLevelSample(sample)
+    # sample = getBitLevelSample(sample)
     sample = getSubBankSample(sample)
     sample = getCECountSample(sample)
     return sample
