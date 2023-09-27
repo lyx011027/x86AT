@@ -205,6 +205,7 @@ def addCECount(sample, bankGroupMap,CE_number):
 def processDimm(id, q, dimmList, leadTime):
     for dimm in dimmList:
         # print(dimm)
+        
         # 生成静态信息
         baseSample = getBaseSample(dimm)
         
@@ -215,7 +216,7 @@ def processDimm(id, q, dimmList, leadTime):
         
         UEFlag = False
         firstUER = datetime.now().replace(year=2099)
-        UEDf = df[(df['err_type'].isin(['UCE']))].reset_index(drop=True)
+        UEDf = df[(df['err_type'].isin(UETypeList))].reset_index(drop=True)
         if UEDf.shape[0] != 0:
             UEFlag = True
             firstUER = UEDf.loc[0, 'record_date']
