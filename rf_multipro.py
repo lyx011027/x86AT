@@ -66,8 +66,6 @@ trainDf = pd.read_csv(trainFile, low_memory=False)
 # trainDf = trainDf[trainDf['capacity'] == 16384 * 2]
 # trainDf = trainDf[trainDf['bit_width_x'] == 4]
 
-for item in STATIC_ITEM:
-    trainDf[item] = pd.Categorical(pd.factorize(trainDf[item])[0])
 
 testDf =  copy.copy(trainDf)
 
@@ -128,7 +126,7 @@ def trainAndTest(time,trainItem):
     # 训练模型
     rfc = RandomForestClassifier()
     
-    rfc = lgb.LGBMClassifier(force_col_wise=True, enable_categorical= True)
+    rfc = lgb.LGBMClassifier(force_col_wise=True)
     
     # rfc = XGBClassifier(
     # learning_rate =0.1,
