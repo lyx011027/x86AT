@@ -18,7 +18,7 @@ import copy
 
 import xgboost as xgb # XGBoost 包
 from xgboost.sklearn import XGBClassifier # 设置模型参数
-
+from sklearn import preprocessing
 LEAD = timedelta(minutes=0)
 
 Trian = 0.7
@@ -28,6 +28,7 @@ dynamicItem = list(x.keys())
 trainItem = ([]
 + dynamicItem
 + STATIC_ITEM
++['time']
 )
 
 if not os.path.exists(MODEL_PATH):
@@ -64,6 +65,10 @@ trainDf = pd.read_csv(trainFile, low_memory=False)
 
 # trainDf = trainDf[trainDf['capacity'] == 16384 * 2]
 # trainDf = trainDf[trainDf['bit_width_x'] == 4]
+
+for item in STATIC_ITEM:
+    trainDf[item] = pd.Categorical(pd.factorize(trainDf[item])[0])
+
 testDf =  copy.copy(trainDf)
 
 def trainAndTest(time,trainItem):
@@ -117,24 +122,27 @@ def trainAndTest(time,trainItem):
     # 连接训练集与测试集的label
     Y_test = test['label'].reset_index(drop=True).fillna(False)
     
+    # vec = CountVectorizer()
+    # X_train = vec.fit_transform(X_train)
+    # X_test = vec.fit_transform(X_train)
     # 训练模型
     rfc = RandomForestClassifier()
     
-    rfc = lgb.LGBMClassifier(force_col_wise=True)
+    rfc = lgb.LGBMClassifier(force_col_wise=True, enable_categorical= True)
     
-    rfc = XGBClassifier(
-    learning_rate =0.1,
-    n_estimators=50,
-    max_depth=10,
-    min_child_weight=3,
-    gamma=3.5,
-    subsample=0.5,
-    colsample_bytree=0.5,
-    objective= 'binary:logistic',#'multi:softprob'
-    # num_class=3, #    'num_class':3, #类别个数
-    nthread=24,
-    scale_pos_weight=1,
-    seed=42)
+    # rfc = XGBClassifier(
+    # learning_rate =0.1,
+    # n_estimators=50,
+    # max_depth=10,
+    # min_child_weight=3,
+    # gamma=3.5,
+    # subsample=0.5,
+    # colsample_bytree=0.5,
+    # objective= 'binary:logistic',#'multi:softprob'
+    # # num_class=3, #    'num_class':3, #类别个数
+    # nthread=24,
+    # scale_pos_weight=1,
+    # seed=42)
     
     rfc.fit(X_train, Y_train)
     # 输出并保存 feature importance
@@ -144,7 +152,7 @@ def trainAndTest(time,trainItem):
     trainItem = np.array(trainItem)
     plot_feature_importances(rfc.feature_importances_, "feature importances", trainItem,picFile)
     # 输出对应 threshold的结果
-    threshold = 0.20
+    threshold = 0.3
     predicted_proba = rfc.predict_proba(X_test)
     
 

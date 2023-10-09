@@ -19,7 +19,7 @@ AHEAD_TIME_List = [timedelta(seconds=15),timedelta(minutes=1),timedelta(minutes=
 # 按batch生成数据集时，batch中dimm的数量，如果使用sample_batch.py生成数据集时发生OOM，则降低该值
 BATCH_SIZE = 10000
 MAXIMUM_RATIO = 100
-STATIC_ITEM = [ "bit_width" ,"bit_width_x" ,"capacity"  ,'min_voltage',"part_number"   ,"procedure" ,"rank_count" ,"speed" ,"vendor"]
+
 
 
 CETypeList = ['Corrected Error']
@@ -29,7 +29,7 @@ UETypeList = UERTypeList + UEOTypeList
 
 PatrolScrubbingUETypeList = ['Downgraded Uncorrected PatrolScrubbing Error']
 
-STATIC_ITEM = []
+STATIC_ITEM = ['bit_width' ,'bit_width_x' ,'capacity'   ,'min_voltage' ,'part_number'      ,'procedure' ,'rank_count' ,'speed'    ,'technology','type' ,'vendor']
 OBSERVATION_TIME_LIST = [timedelta(minutes=6), timedelta(hours=6), timedelta(hours=24), timedelta(hours=72), timedelta(hours=120)]
 # OBSERVATION_TIME_LIST = [timedelta(minutes=1), timedelta(minutes=5), timedelta(hours=1), timedelta(hours=3), timedelta(hours=12), timedelta(hours=24)]
 
@@ -46,7 +46,7 @@ FltCnt = {'Cell':2,'Row':2,'Column':2,'Bank':3,'Device':2}
 def getDynamicSample():
     sample = {}
     # sample = getFrequencySample(sample)
-    # sample = getBitLevelSample(sample)
+    sample = getBitLevelSample(sample)
     sample = getSubBankSample(sample)
     sample = getCECountSample(sample)
     return sample
@@ -89,8 +89,13 @@ def getCECountSample(dynamicSample):
       
 dynamicItem = list(getDynamicSample().keys())
 LEAD = timedelta(minutes=0)
-dataSetFile = "{}.csv".format(getMinutes(LEAD))
+sampleDistance = 5
+dataSetFile = "{}.csv".format(sampleDistance)
 
 # PASS = 
 subBankTime = timedelta(minutes=5)
 OBSERVATION = timedelta(hours=120)
+Predict = timedelta(days=30)
+Interval = timedelta(minutes=5)
+
+onceCount = 5

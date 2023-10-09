@@ -40,17 +40,15 @@ def get_writer(dataset):
     return writer
 
 # 通过静态信息生成basesample
-def getBaseSample(dimm):
-    # staticDf = pd.read_csv(staticFile)
+
+def getBaseSample(dimm, staticFile):
+    staticDf = pd.read_csv(staticFile)
     sample = getDynamicSample()
-    # sample["bit_width"] = int(staticDf.loc[0,"bit_width"].split(" ")[0])
-    # sample["bit_width_x"] = int(staticDf.loc[0,"bit_width_x"].split(" ")[0])
-    # sample["capacity"] = int(staticDf.loc[0,"capacity"].split(" ")[0])
-    # sample["min_voltage"] = int(staticDf.loc[0,"min_voltage"].split(" ")[0])
-    # sample["part_number"] = int(staticDf.loc[0,"part_number"].split("_")[1])
-    # sample["rank_count"] = int(staticDf.loc[0,"rank_count"].split(" ")[0])
-    # sample["speed"] = int(staticDf.loc[0,"speed"].split(" ")[0])
-    # sample["vendor"] = int(staticDf.loc[0,"vendor"].split("_")[1])
+    for item in STATIC_ITEM:
+        
+        sample[item] = staticDf.loc[0,item]
+
+    
     sample['dimm_sn'] = dimm
     
     return sample
@@ -125,7 +123,12 @@ def addItemExclude(sample, item,List):
     return sample
 
 def addSubBankSample(sample, centerList, CEList):
-    
+    if len(centerList) == 0:
+        sample['subBank_count'] = -1
+        sample['subBank_avg'] = -1
+        sample['subBank_max'] = -1
+        return sample
+
     centerErrorList = len(centerList) * [0]
     for i in range(len(centerList)):
         center = centerList[i]
@@ -134,7 +137,7 @@ def addSubBankSample(sample, centerList, CEList):
         for  error in CEList:
             bankId = "{}_{}_{}".format(error["rank"], error['bankgroup'], error['bank'])
             position = (error["row"],error["column"])
-            errorTime = error['record_date']
+            errorTime = error['err_time']
             
             if (centerTime > errorTime
                 and abs(centerPosition[0] - position[0]) < MAXROW 
@@ -207,9 +210,8 @@ def processDimm(id, q, dimmList, leadTime):
         # print(dimm)
         
         # 生成静态信息
-        baseSample = getBaseSample(dimm)
-        
-        
+        staticFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_static.csv")
+        baseSample = getBaseSample(dimm,staticFile) 
         errorFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_error.csv")
         df = pd.read_csv(errorFile, low_memory=False)
         df['record_date'] = pd.to_datetime(df['record_date'], format="%Y-%m-%d %H:%M:%S")
@@ -228,11 +230,14 @@ def processDimm(id, q, dimmList, leadTime):
         # if UEFlag and (firstUER - firstCE < timedelta(minutes=30) or  firstUER - lastCE > timedelta(days=45)):
         #     continue
         
-        
+        CECount =CEDf.shape[0]
+        if CECount < sampleDistance:
+            continue
         # 故障记录
         sampleList = []
 
-        lastCE =CEDf.loc[0, 'record_date']
+        accumulateCE = 1
+        
         
         timeList = []
         adjDqLsit = []
@@ -250,9 +255,7 @@ def processDimm(id, q, dimmList, leadTime):
         for  index, error in CEDf.iterrows():
             errorTime = error['record_date']
             
-            
-            
-            
+
             parity = error['retry_rd_err_log_parity']
             
             flag = False
@@ -294,36 +297,41 @@ def processDimm(id, q, dimmList, leadTime):
             MinBurstDistanceLsit.append(minBurstDistance)
             
             
-
-            
-            # if error['with_phy_addr']:
-            rowId, columnId, bankId, bankgroupId =  error['row'], error['column'], error['bank'], error['bankgroup']
-            if bankgroupId not in bankGroupMap:
-                bankGroupMap[bankgroupId] = {}
-            
-            if bankId not in bankGroupMap[bankgroupId]:
-                bankGroupMap[bankgroupId][bankId] = {}
-                
-            
-            position = (rowId,columnId) 
-            if position not in bankGroupMap[bankgroupId][bankId]:
-                bankGroupMap[bankgroupId][bankId][position] = 0
-            bankGroupMap[bankgroupId][bankId][position] += 1
-            # else:
-            #     baseSample['noadd'] += 1
             CE_number += 1
-            centerList = addCenter(centerList, error)
+            
+            if error['with_phy_addr']:
+                rowId, columnId, bankId, bankgroupId =  error['row'], error['column'], error['bank'], error['bankgroup']
+                if bankgroupId not in bankGroupMap:
+                    bankGroupMap[bankgroupId] = {}
+                
+                if bankId not in bankGroupMap[bankgroupId]:
+                    bankGroupMap[bankgroupId][bankId] = {}
+                    
+                
+                position = (rowId,columnId) 
+                if position not in bankGroupMap[bankgroupId][bankId]:
+                    bankGroupMap[bankgroupId][bankId][position] = 0
+                bankGroupMap[bankgroupId][bankId][position] += 1
+                # else:
+                #     baseSample['noadd'] += 1
+                
+                centerList = addCenter(centerList, error)
             
             
             
-            if index != CEDf.shape[0]-1 and errorTime - lastCE < timedelta(minutes=5):
+            # if index != CEDf.shape[0]-1 and errorTime - lastCE < Interval:
+            # if index != CEDf.shape[0]-1 and accumulateCE < onceCount:
+            if  accumulateCE < onceCount:
+                accumulateCE += 1
                 continue
+            accumulateCE = 1
+            
             lastCE = errorTime
             
             sample = copy.copy(baseSample)
-            sample['time'] = errorTime
-            
-            sample['label'] = firstUER - errorTime < timedelta(days=30)
+            sample['time'] = errorTime.timestamp()
+             
+            sample['label'] = firstUER - errorTime < Predict
             sample = addItemExclude(sample, 'adjERRDq',adjDqLsit)
             sample = addItemExclude(sample, 'errorDq',DqCountList)
             sample = addItemExclude(sample, 'errorBurst',BurstCountList)
@@ -380,6 +388,15 @@ def genDataSet(leadTime):
         p.join()
     q.put([False,[]])
     pMerge.join()
+    
+    trainFile = os.path.join(DATA_SET_PATH, dataSetFile)
+    trainDf = pd.read_csv(trainFile, low_memory=False)
+
+
+    for item in STATIC_ITEM:
+        trainDf["{}".format(item)] = pd.Categorical(pd.factorize(trainDf[item])[0])
+
+    trainDf.to_csv(trainFile, index= False)
 
 
 
