@@ -129,19 +129,19 @@ def trainAndTest(time,trainItem):
     
     rfc = lgb.LGBMClassifier(force_col_wise=True)
     
-    # rfc = XGBClassifier(
-    # learning_rate =0.1,
-    # n_estimators=50,
-    # max_depth=10,
-    # min_child_weight=3,
-    # gamma=3.5,
-    # subsample=0.5,
-    # colsample_bytree=0.5,
-    # objective= 'binary:logistic',#'multi:softprob'
-    # # num_class=3, #    'num_class':3, #类别个数
-    # nthread=24,
-    # scale_pos_weight=1,
-    # seed=42)
+    rfc = XGBClassifier(
+    learning_rate =0.1,
+    n_estimators=50,
+    max_depth=10,
+    min_child_weight=3,
+    gamma=3.5,
+    subsample=0.5,
+    colsample_bytree=0.5,
+    objective= 'binary:logistic',#'multi:softprob'
+    # num_class=3, #    'num_class':3, #类别个数
+    nthread=24,
+    scale_pos_weight=1,
+    seed=42)
     
     rfc.fit(X_train, Y_train)
     # 输出并保存 feature importance
