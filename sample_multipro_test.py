@@ -44,10 +44,13 @@ def get_writer(dataset):
 def getBaseSample(dimm, staticFile):
     staticDf = pd.read_csv(staticFile)
     sample = getDynamicSample()
-    print(staticDf.columns)
+
     for item in STATIC_ITEM:
-        
-        sample[item] = staticDf.loc[0,item]
+        row = staticDf.loc[0]
+        if item in row:
+            sample[item] = row[item]
+        else:
+            sample[item] = ""
 
     
     sample['dimm_sn'] = dimm
