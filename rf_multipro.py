@@ -22,6 +22,7 @@ from sklearn import preprocessing
 LEAD = timedelta(minutes=0)
 
 Trian = 0.7
+threshold = 0.2
 x = getDynamicSample()
 
 dynamicItem = list(x.keys())
@@ -150,7 +151,7 @@ def trainAndTest(time,trainItem):
     trainItem = np.array(trainItem)
     plot_feature_importances(rfc.feature_importances_, "feature importances", trainItem,picFile)
     # 输出对应 threshold的结果
-    threshold = 0.3
+
     predicted_proba = rfc.predict_proba(X_test)
     
 
