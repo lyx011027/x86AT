@@ -33,10 +33,9 @@ if not os.path.exists(DATA_SET_PATH):
 def get_writer(dataset):
     f1 = open(dataset, mode="w")
     writer = csv.DictWriter(f1, sampleItem)
-    itemMap = {}
-    for item in sampleItem:
-        itemMap [item] = item
-    writer.writerow(itemMap)
+
+    writer.writeheader()
+
     return writer
 
 # 通过静态信息生成basesample
@@ -173,7 +172,7 @@ def addCenter(centerList, error):
         
     return centerList
 
-def addCECount(sample, bankGroupMap,CE_number):
+def addCECount(sample, bankGroupMap,CE_number,PUE_number):
     levelMap = {}
     for level in FltCnt.keys():
         levelMap[level] = []
@@ -206,6 +205,7 @@ def addCECount(sample, bankGroupMap,CE_number):
             sample['{}_avg'.format(level)] = sum(levelMap[level])/len(levelMap[level])
             sample['{}_max'.format(level)] = max(levelMap[level])
     sample['CE_number'] = CE_number
+    sample['PatrolScrubbingUEO'] = PUE_number
     return sample
 
 
@@ -254,78 +254,73 @@ def processDimm(id, q, dimmList, leadTime):
         
         bankGroupMap = {}
         CE_number = 0
+        PUE_number = 0
         centerList = []
         CEList = []
         for  index, error in CEDf.iterrows():
-            errorTime = error['record_date']
-            
+            errorType = error['err_type']
+            if errorType in CETypeList:
+                errorTime = error['record_date']
 
-            parity = error['retry_rd_err_log_parity']
-            
-            flag = False
-            for i in range(len(timeList)):
-                if errorTime - timeList[i] < OBSERVATION:
-                    break
-                else:
-                    flag = True
-            if flag:
-                timeList = timeList[i+1:]
-                adjDqLsit = adjDqLsit[i+1:]
-                MaxDqDistanceLsit = MaxDqDistanceLsit[i+1:]
-                MinDqDistanceLsit = MinDqDistanceLsit[i+1:]
-                MaxBurstDistanceLsit = MaxBurstDistanceLsit[i+1:]
-                MinBurstDistanceLsit = MinBurstDistanceLsit[i+1:]
-                BurstCountList = BurstCountList[i+1:]
-                DqCountList = DqCountList[i+1:]
-            # timeList = timeList[:10]
-            # adjDqLsit = adjDqLsit[:10]
-            # MaxDqDistanceLsit = MaxDqDistanceLsit[:10]
-            # MinDqDistanceLsit = MinDqDistanceLsit[:10]
-            # MaxBurstDistanceLsit = MaxBurstDistanceLsit[:10]
-            # MinBurstDistanceLsit = MinBurstDistanceLsit[:10]
-            # BurstCountList = BurstCountList[:10]
-            # DqCountList = DqCountList[:10]
-            
-            
-            adjDqCount, maxDqDistance, minDQDistance,DQCount, maxBurstDistance, minBurstDistance, BurstCount = parseBitError(parity)
-            
-            timeList.append(errorTime)
-            
-            adjDqLsit.append(adjDqCount)
-            BurstCountList.append(BurstCount)
-            DqCountList.append(DQCount)
-            
-            MaxDqDistanceLsit.append(maxDqDistance)
-            MinDqDistanceLsit.append(minDQDistance)
-            MaxBurstDistanceLsit.append(maxBurstDistance)
-            MinBurstDistanceLsit.append(minBurstDistance)
-            
-            
-            CE_number += 1
-            
-            if error['with_phy_addr']:
-                rowId, columnId, bankId, bankgroupId =  error['row'], error['column'], error['bank'], error['bankgroup']
-                if bankgroupId not in bankGroupMap:
-                    bankGroupMap[bankgroupId] = {}
+                parity = error['retry_rd_err_log_parity']
                 
-                if bankId not in bankGroupMap[bankgroupId]:
-                    bankGroupMap[bankgroupId][bankId] = {}
+                flag = False
+                for i in range(len(timeList)):
+                    if errorTime - timeList[i] < OBSERVATION:
+                        break
+                    else:
+                        flag = True
+                if flag:
+                    timeList = timeList[i+1:]
+                    adjDqLsit = adjDqLsit[i+1:]
+                    MaxDqDistanceLsit = MaxDqDistanceLsit[i+1:]
+                    MinDqDistanceLsit = MinDqDistanceLsit[i+1:]
+                    MaxBurstDistanceLsit = MaxBurstDistanceLsit[i+1:]
+                    MinBurstDistanceLsit = MinBurstDistanceLsit[i+1:]
+                    BurstCountList = BurstCountList[i+1:]
+                    DqCountList = DqCountList[i+1:]
+
+                
+                
+                adjDqCount, maxDqDistance, minDQDistance,DQCount, maxBurstDistance, minBurstDistance, BurstCount = parseBitError(parity)
+                
+                timeList.append(errorTime)
+                
+                adjDqLsit.append(adjDqCount)
+                BurstCountList.append(BurstCount)
+                DqCountList.append(DQCount)
+                
+                MaxDqDistanceLsit.append(maxDqDistance)
+                MinDqDistanceLsit.append(minDQDistance)
+                MaxBurstDistanceLsit.append(maxBurstDistance)
+                MinBurstDistanceLsit.append(minBurstDistance)
+                
+                
+                CE_number += 1
+                
+                if error['with_phy_addr']:
+                    rowId, columnId, bankId, bankgroupId =  error['row'], error['column'], error['bank'], error['bankgroup']
+                    if bankgroupId not in bankGroupMap:
+                        bankGroupMap[bankgroupId] = {}
                     
-                
-                position = (rowId,columnId) 
-                if position not in bankGroupMap[bankgroupId][bankId]:
-                    bankGroupMap[bankgroupId][bankId][position] = 0
-                bankGroupMap[bankgroupId][bankId][position] += 1
-                # else:
-                #     baseSample['noadd'] += 1
-                
-                centerList = addCenter(centerList, error)
+                    if bankId not in bankGroupMap[bankgroupId]:
+                        bankGroupMap[bankgroupId][bankId] = {}
+                        
+                    
+                    position = (rowId,columnId) 
+                    if position not in bankGroupMap[bankgroupId][bankId]:
+                        bankGroupMap[bankgroupId][bankId][position] = 0
+                    bankGroupMap[bankgroupId][bankId][position] += 1
+                    # else:
+                    #     baseSample['noadd'] += 1
+                    
+                    centerList = addCenter(centerList, error)
+            else:
+                PUE_number += 1
             
-            
-            
-            # if index != CEDf.shape[0]-1 and errorTime - lastCE < Interval:
-            # if index != CEDf.shape[0]-1 and accumulateCE < onceCount:
-            if  accumulateCE < onceCount:
+        
+            # if index != CEDf.shape[0]-1 and accumulateCE < sampleDistance:
+            if  accumulateCE < sampleDistance:
                 accumulateCE += 1
                 continue
             accumulateCE = 1
@@ -347,7 +342,7 @@ def processDimm(id, q, dimmList, leadTime):
             
             sample = addSubBankSample(sample, centerList, CEList)
             
-            sample = addCECount(sample, bankGroupMap,CE_number)
+            sample = addCECount(sample, bankGroupMap,CE_number, PUE_number)
             
             sampleList.append(sample)
             

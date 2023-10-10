@@ -85,6 +85,7 @@ def getCECountSample(dynamicSample):
         dynamicSample['{}_max'.format(level)] = 0   
     dynamicSample['noadd'] = 0
     dynamicSample['CE_number'] = 0
+    dynamicSample['PatrolScrubbingUEO'] = 0
     return dynamicSample
       
 dynamicItem = list(getDynamicSample().keys())
@@ -98,4 +99,3 @@ OBSERVATION = timedelta(hours=120)
 Predict = timedelta(days=30)
 Interval = timedelta(minutes=5)
 
-onceCount = 5
