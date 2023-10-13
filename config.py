@@ -69,7 +69,7 @@ def getBitLevelSample(sample):
         for pattern in patternList:
             sample['{}_{}'.format(prefix,pattern)] = 0
     return sample
-
+bitLevelItem = list(getBitLevelSample({}).keys())
 def getSubBankSample(dynamicSample):
 
     dynamicSample['subBank_count'] = 0
@@ -90,10 +90,10 @@ def getCECountSample(dynamicSample):
       
 dynamicItem = list(getDynamicSample().keys())
 LEAD = timedelta(minutes=0)
-sampleDistance = 5
+sampleDistance = 1
 dataSetFile = "{}.csv".format(sampleDistance)
 
-# PASS = 
+
 subBankTime = timedelta(minutes=5)
 OBSERVATION = timedelta(hours=120)
 Predict = timedelta(days=30)

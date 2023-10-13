@@ -235,7 +235,7 @@ def processDimm(id, q, dimmList, leadTime):
         #     continue
         
         CECount =CEDf.shape[0]
-        if CECount < sampleDistance:
+        if CECount < sampleDistance * 5:
             continue
         # 故障记录
         sampleList = []
