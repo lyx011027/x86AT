@@ -23,9 +23,14 @@ LEAD = timedelta(minutes=0)
 
 Trian = 0.7
 threshold = 0.2
-x = getDynamicSample()
+def getTrainItem():
+    sample = {}
 
-dynamicItem = list(x.keys())
+    sample = getSubBankSample(sample)
+    sample = getCECountSample(sample)
+    return list(sample.keys())
+
+dynamicItem = getTrainItem()
 trainItem = ([]
 + dynamicItem
 + STATIC_ITEM
