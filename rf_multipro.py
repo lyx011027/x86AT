@@ -186,7 +186,7 @@ def trainAndTest(time,trainItem):
     
     
     
-    print("ahead time: {} , FP: {} , TP: {} , precision: {} , recall: {}".format(time, len(FPMap), len(TPMap), len(TPMap)/(len(FPMap) + len(TPMap)), len(TPMap)/(len(true_sn) - len(true_sn_train)))*0.88)       
+    print("ahead time: {} , FP: {} , TP: {} , precision: {} , recall: {}".format(time, len(FPMap), len(TPMap), len(TPMap)/(len(FPMap) + len(TPMap)), len(TPMap)/(len(true_sn) - len(true_sn_train))*0.88))       
 
     p.append(len(TPMap)/(len(FPMap) + len(TPMap)))
     r.append(len(TPMap)/(len(true_sn) - len(true_sn_train)))
