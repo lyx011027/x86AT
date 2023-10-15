@@ -20,20 +20,23 @@ import xgboost as xgb # XGBoost 包
 from xgboost.sklearn import XGBClassifier # 设置模型参数
 from sklearn import preprocessing
 LEAD = timedelta(minutes=0)
-
+threshold = 0.5
 Trian = 0.7
-threshold = 0.2
-def getTrainItem():
+
+def getDynamicTrainSample():
     sample = {}
     sample = getFrequencySample(sample)
+    # sample = getBitLevelSample(sample)
     sample = getSubBankSample(sample)
     sample = getCECountSample(sample)
-    return list(sample.keys())
+    # sample = getBitlineSample(sample)
+    
+    return sample
 
-dynamicItem = getTrainItem()
+dynamicItem = list(getDynamicTrainSample().keys())
 trainItem = ([]
 + dynamicItem
-+ STATIC_ITEM
+# + STATIC_ITEM
 # +['time']
 )
 
@@ -60,6 +63,10 @@ def plot_feature_importances(feature_importances,title,feature_names, picFile):
     for y, x in enumerate(feature_importances[index_sorted]):
         plt.text(x+2, y, '%.4s' %x, ha='center', va='bottom')
     plt.yticks(pos,feature_names[index_sorted])
+    
+    for i in range(len(index_sorted) - 10, len(index_sorted)):
+        idex = index_sorted[i]
+        print(feature_names[idex])
     plt.title(title)
     plt.savefig(picFile,dpi=1000)
 
@@ -69,9 +76,8 @@ trainFile = os.path.join(DATA_SET_PATH, dataSetFile)
     
 trainDf = pd.read_csv(trainFile, low_memory=False)
 
-# trainDf = trainDf[trainDf['capacity'] == 16384 * 2]
-# trainDf = trainDf[trainDf['bit_width_x'] == 4]
-
+# trainDf = trainDf[trainDf['capacity'] == 1]
+# trainDf = trainDf[trainDf['bit_width_x'] == 1]
 
 testDf =  copy.copy(trainDf)
 
@@ -95,7 +101,7 @@ def trainAndTest(time,trainItem):
     true_df_test = testDf[(~testDf['dimm_sn'].isin(true_sn_train)) & (testDf['dimm_sn'].isin(true_sn))]
 
     # 训练集与测试集中正样本个数
-    print(len(true_sn_train),len(true_sn) - len(true_sn_train))
+    
     # print(true_sn)
     false_sn = trainDf[~trainDf['dimm_sn'].isin(true_sn)]['dimm_sn'].drop_duplicates().tolist()
     
@@ -108,7 +114,7 @@ def trainAndTest(time,trainItem):
     # 生成测试集负样本data与label
     false_df_test = testDf[(~testDf['dimm_sn'].isin(false_sn_train)) & (testDf['dimm_sn'].isin(false_sn))]
 
-
+    print(len(true_sn_train),len(true_sn) - len(true_sn_train) , len(false_sn_train),len(false_sn) - len(false_sn_train))
     # 生成训练集
     train = pd.concat([true_df_train, false_df_train]).reset_index(drop=True)
     
@@ -125,10 +131,7 @@ def trainAndTest(time,trainItem):
     X_test = test.fillna(-1)[trainItem]
     # 连接训练集与测试集的label
     Y_test = test['label'].reset_index(drop=True).fillna(False)
-    
-    # vec = CountVectorizer()
-    # X_train = vec.fit_transform(X_train)
-    # X_test = vec.fit_transform(X_train)
+
     # 训练模型
     rfc = RandomForestClassifier()
     
@@ -154,6 +157,7 @@ def trainAndTest(time,trainItem):
     # for i in range (len(trainItem)):
     #     print(trainItem[i], rfc.feature_importances_[i])
     trainItem = np.array(trainItem)
+    
     plot_feature_importances(rfc.feature_importances_, "feature importances", trainItem,picFile)
     # 输出对应 threshold的结果
 
@@ -190,7 +194,7 @@ def trainAndTest(time,trainItem):
 
     p.append(len(TPMap)/(len(FPMap) + len(TPMap)))
     r.append(len(TPMap)/(len(true_sn) - len(true_sn_train)))
-    
+    # print(TPMap.keys())
     prec, recall, _ = precision_recall_curve(Y_test, predicted_proba [:,1], pos_label=1)
     pr_display = PrecisionRecallDisplay(estimator_name = 'rf',precision=prec, recall=recall, average_precision=average_precision_score(Y_test, predicted_proba [:,1], pos_label=1))
     pr_display.average_precision
@@ -210,5 +214,5 @@ for i in range(10):
     trainAndTest(LEAD,trainItem)
 print(p, sum(p) / len(p))
 print(r, sum(r) / len(r))
-print(f, sum(f) / len(f))
+# print(f, sum(f) / len(f))
 
