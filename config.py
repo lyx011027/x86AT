@@ -29,7 +29,7 @@ UETypeList = UERTypeList + UEOTypeList
 
 PatrolScrubbingUETypeList = ['Downgraded Uncorrected PatrolScrubbing Error']
 
-STATIC_ITEM = ['bit_width' ,'bit_width_x' ,'capacity'   ,'min_voltage' ,'part_number'  ,'rank_count' ,'speed'    ,'technology','type' ,'vendor']
+STATIC_ITEM = ['bit_width_x' ,'capacity'   ,'min_voltage' ,'part_number'  ,'rank_count' ,'speed'    ,'technology','type' ,'vendor']
 OBSERVATION_TIME_LIST = [timedelta(minutes=6), timedelta(hours=1),timedelta(hours=6), timedelta(hours=24), timedelta(hours=72), timedelta(hours=120)]
 # OBSERVATION_TIME_LIST = [timedelta(minutes=1), timedelta(minutes=5), timedelta(hours=1), timedelta(hours=3), timedelta(hours=12), timedelta(hours=24)]
 
