@@ -43,18 +43,14 @@ def get_writer(dataset):
 def getBaseSample(dimm, staticFile):
     staticDf = pd.read_csv(staticFile)
     sample = getDynamicSample()
-
     for item in STATIC_ITEM:
-        row = staticDf.loc[0]
-        if item in row:
-            sample[item] = row[item]
-        else:
-            sample[item] = ""
+        
+        sample[item] = staticDf.loc[0,item]
 
-    
+    lifeStart = datetime.strptime(staticDf.loc[0,'LifeStartDate'],'%Y-%m-%d %H:%M:%S')
     sample['dimm_sn'] = dimm
     
-    return sample
+    return sample, lifeStart
 
 
 def parseBitError(parity):
@@ -140,7 +136,7 @@ def addSubBankSample(sample, centerList, CEList):
         for  error in CEList:
             bankId = "{}_{}_{}".format(error["rank"], error['bankgroup'], error['bank'])
             position = (error["row"],error["column"])
-            errorTime = error['err_time']
+            errorTime = error['record_date']
             
             if (centerTime > errorTime
                 and abs(centerPosition[0] - position[0]) < MAXROW 
@@ -208,14 +204,34 @@ def addCECount(sample, bankGroupMap,CE_number,PUE_number):
     sample['PatrolScrubbingUEO'] = PUE_number
     return sample
 
-
+def addFrequency(sample, timeList):
+    timeListLength = len(timeList)
+    endTime = timeList[timeListLength - 1]
+    
+        
+    for time in OBSERVATION_TIME_LIST:
+        startTime = endTime - time
+        for start in range(timeListLength):
+            if timeList[start] >= startTime:
+                break
+        errorCount = timeListLength - start + 1
+        sample['Err_CE_Cnt_{}'.format(getMinutes(time))] = errorCount
+        for num in CEIntervalNumList:
+            if num > errorCount:
+                continue
+            MinT =  int((timeList[timeListLength-1] - timeList[start]).total_seconds())
+            for indx in range(start, timeListLength - errorCount):
+                tmp = int((timeList[indx + errorCount -1] - timeList[indx]).total_seconds())
+                MinT = min(tmp, MinT)
+            sample['Min_T_CE_{}_{}'.format(getMinutes(time), num)] = MinT
+    return sample
 def processDimm(id, q, dimmList, leadTime):
     for dimm in dimmList:
         # print(dimm)
         
         # 生成静态信息
         staticFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_static.csv")
-        baseSample = getBaseSample(dimm,staticFile) 
+        baseSample, lifeStart = getBaseSample(dimm, staticFile)
         errorFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_error.csv")
         df = pd.read_csv(errorFile, low_memory=False)
         df['record_date'] = pd.to_datetime(df['record_date'], format="%Y-%m-%d %H:%M:%S")
@@ -239,7 +255,7 @@ def processDimm(id, q, dimmList, leadTime):
             continue
         # 故障记录
         sampleList = []
-
+        errorStart = CEDf.loc[0, 'record_date']
         accumulateCE = 1
         
         
@@ -257,10 +273,12 @@ def processDimm(id, q, dimmList, leadTime):
         PUE_number = 0
         centerList = []
         CEList = []
+        useFlag = False
         for  index, error in CEDf.iterrows():
             errorType = error['err_type']
+            errorTime = error['record_date']
             if errorType in CETypeList:
-                errorTime = error['record_date']
+                
 
                 parity = error['retry_rd_err_log_parity']
                 
@@ -295,7 +313,8 @@ def processDimm(id, q, dimmList, leadTime):
                 MaxBurstDistanceLsit.append(maxBurstDistance)
                 MinBurstDistanceLsit.append(minBurstDistance)
                 
-                
+                if minDQDistance == 1:
+                    useFlag = True
                 CE_number += 1
                 
                 if error['with_phy_addr']:
@@ -325,12 +344,15 @@ def processDimm(id, q, dimmList, leadTime):
                 continue
             accumulateCE = 1
             
-            lastCE = errorTime
             
+            if not useFlag:
+                continue
             sample = copy.copy(baseSample)
             sample['time'] = errorTime.timestamp()
-             
-            sample['label'] = firstUER - errorTime < Predict
+            sample['lifeSpan'] = int((errorTime - lifeStart).total_seconds())
+            sample['errorSpan'] = int((errorTime - errorStart).total_seconds())
+            sample['errorAvg'] = sample['errorSpan'] / CE_number
+            sample['label'] = UEFlag
             sample = addItemExclude(sample, 'adjERRDq',adjDqLsit)
             sample = addItemExclude(sample, 'errorDq',DqCountList)
             sample = addItemExclude(sample, 'errorBurst',BurstCountList)
@@ -343,6 +365,8 @@ def processDimm(id, q, dimmList, leadTime):
             sample = addSubBankSample(sample, centerList, CEList)
             
             sample = addCECount(sample, bankGroupMap,CE_number, PUE_number)
+            
+            sample = addFrequency(sample, timeList)
             
             sampleList.append(sample)
             
