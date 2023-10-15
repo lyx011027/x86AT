@@ -317,7 +317,7 @@ def processDimm(id, q, dimmList, leadTime):
                 
                 if minDQDistance == 1:
                     useFlag = True
-                CE_number += 1
+                
                 
                 if error['with_phy_addr']:
                     rowId, columnId, bankId, bankgroupId =  error['row'], error['column'], error['bank'], error['bankgroup']
@@ -346,7 +346,7 @@ def processDimm(id, q, dimmList, leadTime):
                 continue
             accumulateCE = 1
             
-            
+            CE_number += 1
             # if not useFlag:
             #     continue
             sample = copy.copy(baseSample)
