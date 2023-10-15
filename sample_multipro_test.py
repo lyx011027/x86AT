@@ -48,6 +48,8 @@ def getBaseSample(dimm, staticFile):
         sample[item] = staticDf.loc[0,item]
 
     lifeStart = datetime.strptime(staticDf.loc[0,'LifeStartDate'],'%Y-%m-%d %H:%M:%S')
+    if 'LifeStartDate' not in staticDf.loc[0]:
+        print(dimm)
     sample['dimm_sn'] = dimm
     
     return sample, lifeStart
@@ -370,8 +372,7 @@ def processDimm(id, q, dimmList, leadTime):
             
             sampleList.append(sample)
             
-        if UEFlag == 1:
-            print(dimm)
+
         q.put([True, sampleList])   
             
             
