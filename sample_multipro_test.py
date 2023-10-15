@@ -44,16 +44,20 @@ def getBaseSample(dimm, staticFile):
     staticDf = pd.read_csv(staticFile)
     sample = getDynamicSample()
     row = staticDf.loc[0]
+    flag = False
     for item in STATIC_ITEM:
         
         sample[item] = row[item]
     if 'LifeStartDate' not in row:
-        print(dimm)
-    lifeStart = datetime.strptime(row['LifeStartDate'],'%Y-%m-%d %H:%M:%S')
+        lifeStart = 0
+        flag = False
+    else:
+        lifeStart = datetime.strptime(row['LifeStartDate'],'%Y-%m-%d %H:%M:%S')
+        flag = True
     
     sample['dimm_sn'] = dimm
     
-    return sample, lifeStart
+    return sample, lifeStart, flag
 
 
 def parseBitError(parity):
@@ -237,7 +241,7 @@ def processDimm(id, q, dimmList, leadTime):
         
         # 生成静态信息
         staticFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_static.csv")
-        baseSample, lifeStart = getBaseSample(dimm, staticFile)
+        baseSample, lifeStart, lifeFlag = getBaseSample(dimm, staticFile)
         errorFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_error.csv")
         df = pd.read_csv(errorFile, low_memory=False)
         df['record_date'] = pd.to_datetime(df['record_date'], format="%Y-%m-%d %H:%M:%S")
@@ -355,7 +359,8 @@ def processDimm(id, q, dimmList, leadTime):
             #     continue
             sample = copy.copy(baseSample)
             sample['time'] = errorTime.timestamp()
-            sample['lifeSpan'] = int((errorTime - lifeStart).total_seconds())
+            if lifeFlag:
+                sample['lifeSpan'] = int((errorTime - lifeStart).total_seconds())
             sample['errorSpan'] = int((errorTime - errorStart).total_seconds())
             sample['errorAvg'] = sample['errorSpan'] / CE_number
             sample['label'] = UEFlag
