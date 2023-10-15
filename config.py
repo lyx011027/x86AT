@@ -30,7 +30,7 @@ UETypeList = UERTypeList + UEOTypeList
 PatrolScrubbingUETypeList = ['Downgraded Uncorrected PatrolScrubbing Error']
 
 STATIC_ITEM = ['bit_width' ,'bit_width_x' ,'capacity'   ,'min_voltage' ,'part_number'      ,'procedure' ,'rank_count' ,'speed'    ,'technology','type' ,'vendor']
-OBSERVATION_TIME_LIST = [timedelta(minutes=6), timedelta(hours=6), timedelta(hours=24), timedelta(hours=72), timedelta(hours=120)]
+OBSERVATION_TIME_LIST = [timedelta(minutes=6), timedelta(hours=1),timedelta(hours=6), timedelta(hours=24), timedelta(hours=72), timedelta(hours=120)]
 # OBSERVATION_TIME_LIST = [timedelta(minutes=1), timedelta(minutes=5), timedelta(hours=1), timedelta(hours=3), timedelta(hours=12), timedelta(hours=24)]
 
 # 提前预测时间
@@ -45,22 +45,25 @@ FltCnt = {'Cell':2,'Row':2,'Column':2,'Bank':3,'Device':2}
 
 def getDynamicSample():
     sample = {}
-    # sample = getFrequencySample(sample)
+    sample = getFrequencySample(sample)
     sample = getBitLevelSample(sample)
     sample = getSubBankSample(sample)
     sample = getCECountSample(sample)
     return sample
 
+
 def getFrequencySample(sample):
     for time in OBSERVATION_TIME_LIST:
-        sample['Rpt_CE_Cnt_{}'.format(getMinutes(time))] = 0
-        sample['Err_CE_Cnt_{}'.format(getMinutes(time))] = 0
+        # sample['Rpt_CE_Cnt_{}'.format(getMinutes(time))] = -1
+        sample['Err_CE_Cnt_{}'.format(getMinutes(time))] = -1
         for num in CEIntervalNumList:
-            sample['Min_T_CE_{}_{}'.format(getMinutes(time), num)] = 126144000
-    for level in FltCnt.keys():
-        sample[level] = False
+            sample['Min_T_CE_{}_{}'.format(getMinutes(time), num)] = -1
+    # for level in FltCnt.keys():
+    #     sample[level] = False
+    sample['lifeSpan'] = -1
+    sample['errorSpan'] = -1
+    sample['errorAvg'] = -1
     return sample
-
 
 prefixList = ['max', 'sum', 'min', 'avg']
 patternList = ['adjERRDq', 'maxDqDistance','minDqDistance', 'maxBurstDistance','minBurstDistance', 'errorBurst', 'errorDq', 'errorPerBurst']
