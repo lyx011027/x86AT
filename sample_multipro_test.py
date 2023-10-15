@@ -49,7 +49,7 @@ def getBaseSample(dimm, staticFile):
         sample[item] = row[item]
     if 'LifeStartDate' not in row:
         print(dimm)
-    lifeStart = datetime.strptime(row[0,'LifeStartDate'],'%Y-%m-%d %H:%M:%S')
+    lifeStart = datetime.strptime(row['LifeStartDate'],'%Y-%m-%d %H:%M:%S')
     
     sample['dimm_sn'] = dimm
     
