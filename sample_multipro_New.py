@@ -186,7 +186,7 @@ def processDimm(id, q, dimmList, leadTime):
         if UEDf.shape[0] != 0:
             UEFlag = True
             firstUER = UEDf.loc[0, 'record_date']
-        CEDf = df[(df['record_date'] <  firstUER) and (df['err_type'].isin(CETypeList))].reset_index(drop=True)
+        CEDf = df[(df['record_date'] <  firstUER) & (df['err_type'].isin(CETypeList))].reset_index(drop=True)
         
         baseSample['label'] = UEFlag
         
