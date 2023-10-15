@@ -93,7 +93,7 @@ def getCECountSample(dynamicSample):
       
 dynamicItem = list(getDynamicSample().keys())
 LEAD = timedelta(minutes=0)
-sampleDistance = 1
+sampleDistance = 5
 dataSetFile = "{}.csv".format(sampleDistance)
 
 
