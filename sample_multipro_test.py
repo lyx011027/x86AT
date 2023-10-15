@@ -43,13 +43,14 @@ def get_writer(dataset):
 def getBaseSample(dimm, staticFile):
     staticDf = pd.read_csv(staticFile)
     sample = getDynamicSample()
+    row = staticDf.loc[0]
     for item in STATIC_ITEM:
         
-        sample[item] = staticDf.loc[0,item]
-
-    lifeStart = datetime.strptime(staticDf.loc[0,'LifeStartDate'],'%Y-%m-%d %H:%M:%S')
-    if 'LifeStartDate' not in staticDf.loc[0]:
+        sample[item] = row[item]
+    if 'LifeStartDate' not in row:
         print(dimm)
+    lifeStart = datetime.strptime(row[0,'LifeStartDate'],'%Y-%m-%d %H:%M:%S')
+    
     sample['dimm_sn'] = dimm
     
     return sample, lifeStart
