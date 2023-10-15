@@ -171,11 +171,11 @@ def addFrequency(sample, timeList):
 def processDimm(id, q, dimmList, leadTime):
     for dimm in dimmList:
         # print(dimm)
-        errorFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_error.csv")
+        staticFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_static.csv")
         # 生成静态信息
-        baseSample, lifeStart = getBaseSample(dimm, errorFile)
+        baseSample, lifeStart = getBaseSample(dimm, staticFile)
         
-        
+        errorFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_error.csv")
        
         df = pd.read_csv(errorFile, low_memory=False)
         df['record_date'] = pd.to_datetime(df['record_date'], format="%Y-%m-%d %H:%M:%S")
