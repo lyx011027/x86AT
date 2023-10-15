@@ -69,7 +69,7 @@ def processDimm(id, q, dimmList):
             count = 0
             
             for bit in positionMap[position].keys():
-                if parseBitError(bit) == 1:
+                if parseBitError(bit) >= 1:
                     count += 1
             if count >= 1:        
                 flag = True
