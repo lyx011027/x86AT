@@ -2,7 +2,7 @@ from config import *
 import pandas as pd
 def getLSTMItem():
     sample = {}
-    # sample = getFrequencySample(sample)
+    sample = getFrequencySample(sample)
 
     sample = getSubBankSample(sample)
     sample = getCECountSample(sample)
