@@ -253,7 +253,7 @@ def processDimm(id, q, dimmList, leadTime):
         #     continue
         
         CECount =CEDf.shape[0]
-        if CECount < sampleDistance * 5:
+        if CECount < sampleDistance:
             continue
         # 故障记录
         sampleList = []
@@ -347,8 +347,8 @@ def processDimm(id, q, dimmList, leadTime):
             accumulateCE = 1
             
             
-            if not useFlag:
-                continue
+            # if not useFlag:
+            #     continue
             sample = copy.copy(baseSample)
             sample['time'] = errorTime.timestamp()
             sample['lifeSpan'] = int((errorTime - lifeStart).total_seconds())
