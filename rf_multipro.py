@@ -25,7 +25,7 @@ Trian = 0.7
 threshold = 0.2
 def getTrainItem():
     sample = {}
-
+    sample = getFrequencySample(sample)
     sample = getSubBankSample(sample)
     sample = getCECountSample(sample)
     return list(sample.keys())
@@ -34,7 +34,7 @@ dynamicItem = getTrainItem()
 trainItem = ([]
 + dynamicItem
 + STATIC_ITEM
-+['time']
+# +['time']
 )
 
 if not os.path.exists(MODEL_PATH):
