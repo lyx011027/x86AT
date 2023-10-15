@@ -207,7 +207,10 @@ def addCECount(sample, bankGroupMap,CE_number,PUE_number):
     return sample
 
 def addFrequency(sample, timeList):
+    
     timeListLength = len(timeList)
+    if timeListLength == 0:
+        return sample
     endTime = timeList[timeListLength - 1]
     
         
