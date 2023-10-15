@@ -173,7 +173,7 @@ def processDimm(id, q, dimmList, leadTime):
         # print(dimm)
         staticFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_static.csv")
         # 生成静态信息
-        baseSample, lifeStart = getBaseSample(dimm, staticFile)
+        baseSample, lifeStart ,Sflag= getBaseSample(dimm, staticFile)
         
         errorFile = os.path.join(SPLIT_DATA_PATH, dimm, dimm+"_error.csv")
        
@@ -250,8 +250,8 @@ def processDimm(id, q, dimmList, leadTime):
             count += 1
             sample = copy.copy(baseSample)
             sample['time'] = errorTime.timestamp()
-            
-            sample['lifeSpan'] = int((errorTime - lifeStart).total_seconds())
+            if Sflag:
+                sample['lifeSpan'] = int((errorTime - lifeStart).total_seconds())
             sample['errorSpan'] = int((errorTime - errorStart).total_seconds())
             sample['errorAvg'] = sample['errorSpan'] / CE_number
 
